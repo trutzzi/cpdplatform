@@ -1,47 +1,27 @@
 import './App.css';
-// Import FirebaseAuth and firebase.
-import React, { useEffect, useState, createContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
-  Link,
   Route,
   Routes
 } from "react-router-dom";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import TextField from '@mui/material/TextField';
 import { blue, green } from '@mui/material/colors';
-import NewTaskDrawerComponent from './components/NewTaskDrawer';
-import UserComponent from './components/UserComponent';
-import TaskComponents from './components/TaskComponent';
-
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import firebase from 'firebase/compat/app';
-import { getDatabase, ref, onValue, push, child, set, update } from "firebase/database";
+import { getDatabase, ref, onValue, push, child, update, equalTo, orderByChild, query } from "firebase/database";
 import 'firebase/compat/auth';
+import UserComponent from './components/UserComponent';
+import NewTaskDrawerComponent from './components/NewTaskDrawer';
 import { firebaseConfig } from './FirebaseConfig';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import UserProvider from './UserProvider';
-import SnackBarComponent from './components/Snackbar';
+import TaskComponents from './components/TaskComponent';
 import useTitler from './customHooks/useTitler';
 import Navigation from './components/Navigation';
-
-
-type UserContextType = {
-  name: string | null | undefined;
-  guid: string | null | undefined;
-  avatar: string | null | undefined;
-  admin: boolean | null | undefined;
-};
-
-const INITIALUSER = {
-  name: null,
-  guid: null,
-  avatar: null,
-  admin: null
-};
-
+import { AuthProvider, UserContextType } from './contexts/UserContext';
 
 const theme = createTheme({
+
   palette: {
     primary: {
       main: green[500],
@@ -54,7 +34,6 @@ const theme = createTheme({
 
 
 const Firebase = firebase.initializeApp(firebaseConfig);
-export const AuthProvider = createContext<UserContextType>(INITIALUSER);
 
 const uiConfig = {
   // Popup signin flow rather than redirect flow.
@@ -81,7 +60,8 @@ function writeNewUser(uid: string, name: string, email: string, photoURL: string
     email,
     timestamp: myDate,
     photoURL: photoURL,
-    admin: false,
+    supervisorId: '',
+    admin: true,
   };
 
   // Get a key for a new user.
@@ -108,7 +88,9 @@ function App() {
 
   const [usersResults, setUsersResults] = useState([]);
   const [taskResults, setTaskResults] = useState([]);
+  const [taskAssignedResults, setTaskAssigendRestults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+  const db = getDatabase();
 
   const [docTitle, setDocTitle] = useTitler('CPD Platform');
 
@@ -116,7 +98,7 @@ function App() {
     setIsDrawerOpen(newOpen);
   };
 
-  function writeNewTask(taskTitle: string, taskDescription: string, selectedDate: any) {
+  function writeNewTask(taskTitle: string, taskDescription: string, selectedDate: Date, personAssigned: string) {
 
     // A task entry.
     const myDate = new Date();
@@ -126,6 +108,7 @@ function App() {
       taskDescription,
       selectedDate,
       userGuid: user?.guid,
+      personsAssigned: personAssigned,
       timestamp: myDate,
       isDone: false,
     };
@@ -133,9 +116,8 @@ function App() {
     // Get a key for a new task.
     const newTaskId = push(child(ref(database), 'tasks')).key;
 
-    // Write the new user's data simultaneously in the users list and the user's user list.
     const updates: any = {};
-    updates[`/tasks/${user?.guid}/' + ${newTaskId}`] = userData;
+    updates[`/tasks/' + ${newTaskId}`] = userData;
 
     return update(ref(database), updates).then(() => {
       console.log("New task has been created")
@@ -146,29 +128,46 @@ function App() {
 
 
   const updateDoneTask = (taskId: string, statusToggle: Boolean) => {
-    const db = getDatabase();
-    update(ref(db, `tasks/${user.guid}/${taskId}`), {
+    update(ref(db, `tasks/${taskId}`), {
       isDone: statusToggle
     });
   }
 
   const isAllreadyUser = async (uid: string) => {
     const getUserByUid = ref(database, `users/${uid}`);
-    const userExist = await onValue(getUserByUid, (snapshot) => {
-      // console.log(snapshot.exists())
-      return snapshot.exists();
+
+    let userExist = false;
+    await onValue(getUserByUid, (snapshot) => {
+      userExist = snapshot.exists();
+      console.log('*', userExist)
     })
 
     // TODO: MAKE SOMEHOW TO CHECK IF USER ALLREADY EXIST
-    // console.log(userExist);
+    console.log('**', userExist)
     return userExist;
+  }
+
+  function getUserByUid() {
+    const getUserByUid = ref(database, `users/${user.guid}`);
+    onValue(getUserByUid, (snapshot) => {
+      const data = snapshot.val();
+      setTaskResults(data);
+    });
+    return database;
   }
 
   useEffect(() => {
     if (user?.guid?.length) {
-      const getTasks = ref(database, `tasks/${user.guid}`);
-      const getUsers = ref(database, 'users');
+      const getTasks = ref(database, `tasks/`);
+      const getEmployes = query(ref(db, 'users'), orderByChild('supervisorId'), equalTo(user?.guid));
       const getUserByUid = ref(database, `users/${user.guid}`);
+
+      // TODO: LEARN TO MAKE REQUEST SEPARATED
+      const getTaskAssigned = query(ref(db, 'tasks'), orderByChild('personsAssigned'), equalTo(user?.guid));
+      onValue(getTaskAssigned, (snapshot) => {
+        const data = snapshot.val();
+        setTaskAssigendRestults(data);
+      });
 
       // Get task request
       onValue(getTasks, (snapshot) => {
@@ -177,8 +176,9 @@ function App() {
       });
 
       // Get users request
-      onValue(getUsers, (snapshot) => {
+      onValue(getEmployes, (snapshot) => {
         const data = snapshot.val();
+        console.log(data)
         setUsersResults(data);
       });
 
@@ -204,7 +204,7 @@ function App() {
         } else {
           writeNewUser(userDB?.uid!, userDB?.displayName!, userDB?.email!, userDB?.photoURL!);
         }
-        // writeNewUser(userDB?.uid!, userDB?.displayName!, userDB?.email!, userDB?.photoURL!);
+        writeNewUser(userDB?.uid!, userDB?.displayName!, userDB?.email!, userDB?.photoURL!);
       } else {
         setIsSignedIn(false)
       }
@@ -218,7 +218,6 @@ function App() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', height: '100vh', width: '100vw' }}>
         <p style={{ textAlign: 'center' }}>Please Sign in to access the platform.</p>
         <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />
-        {!!user! && <SnackBarComponent message={'Please sign in to use the platform.!'} />}
       </div>
     );
   }
@@ -229,16 +228,21 @@ function App() {
         <AuthProvider.Provider value={{ name: user?.name, guid: user?.guid, avatar: user?.avatar, admin: user?.admin }}>
           <Router>
             <Navigation onNewTaskHandler={() => setIsDrawerOpen(true)} onSignOut={signOut} />
+
+            <TextField id="outlined-basic" label="Outlined" variant="outlined" />
+
             <Routes >
-              <Route path="/" element={<UserComponent onResults={usersResults} />}>
+              <Route path="/">
               </Route>
               <Route path="/users" element={<UserComponent onResults={usersResults} />}>
               </Route>
               <Route path="/tasks" element={<TaskComponents onDone={updateDoneTask} onResults={taskResults} />} >
               </Route>
+              <Route path="/mytask" element={<TaskComponents onDone={updateDoneTask} onResults={taskAssignedResults} />} >
+              </Route>
             </Routes >
           </Router>
-          {user?.admin && <NewTaskDrawerComponent onToggleDrawer={toggleDrawer} onOpen={isDrawerOpen} onWriteNewTask={writeNewTask} />}
+          {user?.admin && <NewTaskDrawerComponent onUsersSearch={usersResults} onToggleDrawer={toggleDrawer} onOpen={isDrawerOpen} onWriteNewTask={writeNewTask} />}
         </AuthProvider.Provider>
       </ThemeProvider>
     </div >

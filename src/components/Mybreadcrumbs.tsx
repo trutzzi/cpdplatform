@@ -3,21 +3,22 @@ import { Breadcrumbs, Typography } from "@mui/material"
 import { Link } from 'react-router-dom';
 
 type MybreadcrumbsProps = {
-
+    links: { text: string, link: string }[];
+    selectedPage: string;
 };
-const Mybreadcrumbs: FC<MybreadcrumbsProps> = () => (
+const Mybreadcrumbs: FC<MybreadcrumbsProps> = ({ links, selectedPage }) => (
     <Breadcrumbs style={{ margin: '10px' }} aria-label="breadcrumb">
-        <Link color="inherit" to="/">
-            Home
-        </Link>
-        <Link
+        {links.map(item => {
+            if (item.text === selectedPage) {
+                return <Link
 
-            color="inherit"
-            to="/getting-started/installation/"
-        >
-            Core
-        </Link>
-        <Typography color="text.primary">Breadcrumbs</Typography>
+                    color="inherit"
+                    to={item.link}
+                >
+                    {item.text}
+                </Link>
+            }
+        })}
     </Breadcrumbs>
 );
 

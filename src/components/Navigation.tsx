@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -12,9 +12,10 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import { useContext } from 'react';
-import { AuthProvider } from '../App';
+import { AuthProvider } from '../contexts/UserContext';
 import { Link } from "react-router-dom";
 import Mybreadcrumbs from './Mybreadcrumbs';
+import { getPages } from '../routes/navigation';
 
 
 type NavigationProps = {
@@ -23,9 +24,15 @@ type NavigationProps = {
 };
 
 const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) => {
-    const pages = [{ text: 'Home', link: '/' }, { text: 'Users', link: '/users' }, { text: 'Tasks', link: '/tasks' }];
-    const settings = [{ text: 'Logout', action: onSignOut }];
+    const [currentPage, setCurrentPage] = useState('home');
+    const [pages, setPages] = useState<{ text: string, link: string }[]>([])
     const context = useContext(AuthProvider)
+
+    useEffect(() => {
+        setPages(getPages(context?.admin));
+    }, [context])
+
+    const settings = [{ text: 'Logout', action: onSignOut }];
 
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
@@ -37,13 +44,16 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
         setAnchorElUser(event.currentTarget);
     };
 
-    const handleCloseNavMenu = () => {
+    const handleCloseNavMenu = (text: string | null) => {
+        text && setCurrentPage(text);
         setAnchorElNav(null);
     };
 
     const handleCloseUserMenu = () => {
         setAnchorElUser(null);
     };
+
+
 
     return (
         <>
@@ -83,13 +93,13 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
                                     horizontal: 'left',
                                 }}
                                 open={Boolean(anchorElNav)}
-                                onClose={handleCloseNavMenu}
+                                onClose={() => handleCloseNavMenu(null)}
                                 sx={{
                                     display: { xs: 'block', md: 'none' },
                                 }}
                             >
                                 {pages.map(({ text, link }) => (
-                                    <MenuItem key={text} to={link} component={Link} onClick={handleCloseNavMenu}  >
+                                    <MenuItem key={text} to={link} component={Link} onClick={() => handleCloseNavMenu(text)}  >
                                         {text}
                                     </MenuItem>
                                 ))}
@@ -101,14 +111,14 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
                             component="div"
                             sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}
                         >
-                            LOGO
+                            CPD Platform
                         </Typography>
                         <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                             {pages.map(({ text, link }) => (
                                 <Button
                                     key={text}
                                     to={link} component={Link}
-                                    onClick={handleCloseNavMenu}
+                                    onClick={() => handleCloseNavMenu(text)}
                                     sx={{ my: 2, color: 'white', display: 'block' }}
                                 >
                                     {text}
@@ -145,7 +155,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
                                 onClose={handleCloseUserMenu}
                             >
                                 {settings.map((setting) => (
-                                    <MenuItem key={setting.text} onClick={handleCloseNavMenu}>
+                                    <MenuItem key={setting.text} onClick={() => handleCloseNavMenu(null)}>
                                         <Typography onClick={setting.action} textAlign="center">{setting.text}</Typography>
                                     </MenuItem>
                                 ))}
@@ -154,7 +164,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
                     </Toolbar>
                 </Container>
             </AppBar >
-            <Mybreadcrumbs />
+            <Mybreadcrumbs selectedPage={currentPage} links={pages} />
         </>
     );
 };

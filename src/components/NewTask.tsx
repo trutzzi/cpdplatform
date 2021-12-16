@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import {
@@ -8,15 +8,18 @@ import {
 import Button from '@mui/material/Button'
 import MomentUtils from "@date-io/moment";
 import moment from "moment";
+import InputLabel from '@mui/material/InputLabel';
+import Autocomplete from '@mui/material/Autocomplete';
+import { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
-
-
-export default function ValidationTextFields({ onNewTask }: any) {
-    const [selectedDate, setDate] = useState(moment());
+export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) {
+    const [selectedDate, setDate] = useState<MaterialUiPickersDate | null>(null);
     const [selectedDateValue, setSelectedDateValue] = useState(moment().format("DD MMMM YYYY"));
     const [taskTitle, setTaskTitle] = useState('');
     const [taskDescription, setTaskDescription] = useState('');
     const [isValidInput, setIsValidInput] = useState(true);
+    const [personAssigned, setPersonsAssigned] = useState<string>('');
+    const [assignedOptions, setAssignedOptions] = useState<readonly unknown[]>([])
 
     useEffect(() => {
         if (taskTitle.length && taskDescription.length && selectedDateValue?.length) {
@@ -26,19 +29,31 @@ export default function ValidationTextFields({ onNewTask }: any) {
         }
     }, [taskTitle, taskDescription, selectedDate])
 
-    const onDateChange = (date: any, value: any) => {
+    const onDateChange = (date: MaterialUiPickersDate, value: string | null | undefined) => {
         console.log(value);
         setDate(date);
-        setSelectedDateValue(value);
+        if (value) {
+            setSelectedDateValue(value);
+        }
     };
 
-    const dateFormatter = (str: any) => {
+    const dateFormatter = (str: string) => {
         return str;
     };
 
     const handlenewTask = () => {
-        onNewTask(taskTitle, taskDescription, selectedDateValue);
+        onNewTask(taskTitle, taskDescription, selectedDateValue, personAssigned);
     }
+
+    useEffect(() => {
+        const newUsers = [];
+        for (const property in onUsersSearch) {
+            const user = onUsersSearch[property];
+            newUsers.push({ label: user?.name, assigned: user?.uid });
+        }
+        setAssignedOptions(newUsers);
+    }, [onUsersSearch]);
+
 
     return (
         <Box
@@ -71,6 +86,19 @@ export default function ValidationTextFields({ onNewTask }: any) {
                     rifmFormatter={dateFormatter}
                 />
             </MuiPickersUtilsProvider>
+            <InputLabel id="usersAssignedLabel">Assign taks</InputLabel>
+            <Autocomplete
+                disablePortal
+                id="assigned"
+                options={assignedOptions}
+                sx={{ width: 300 }}
+                onChange={(event, newValue: any) => {
+                    setPersonsAssigned(newValue.assigned);
+                }}
+                renderInput={(params) => {
+                    return <TextField {...params} />
+                }}
+            />
             <Button disabled={isValidInput} onClick={handlenewTask}>Create Task</Button>
         </Box >
     );

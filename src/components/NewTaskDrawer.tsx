@@ -1,11 +1,8 @@
 import * as React from 'react';
 import { Global } from '@emotion/react';
 import { styled } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import { grey } from '@mui/material/colors';
-import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import NewTask from './NewTask';
@@ -19,8 +16,9 @@ interface Props {
      */
     window?: () => Window;
     onOpen: boolean;
-    onToggleDrawer: any;
+    onToggleDrawer: Function;
     onWriteNewTask: Function;
+    onUsersSearch: never[];
 }
 
 const Root = styled('div')(({ theme }) => ({
@@ -51,7 +49,6 @@ export default function NewTaskDrawerComponent(props: Props) {
 
     return (
         <Root>
-            <CssBaseline />
             <Global
                 styles={{
                     '.MuiDrawer-root > .MuiPaper-root': {
@@ -94,7 +91,7 @@ export default function NewTaskDrawerComponent(props: Props) {
                         overflow: 'auto',
                     }}
                 >
-                    <NewTask onNewTask={props.onWriteNewTask} />
+                    <NewTask onUsersSearch={props.onUsersSearch} onNewTask={props.onWriteNewTask} />
                 </StyledBox>
             </SwipeableDrawer>
         </Root>
