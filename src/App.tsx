@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
   Route,
+  Navigate,
   Routes
 } from "react-router-dom";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import TextField from '@mui/material/TextField';
 import { blue, green } from '@mui/material/colors';
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import firebase from 'firebase/compat/app';
-import { getDatabase, ref, onValue, push, child, update, equalTo, orderByChild, query } from "firebase/database";
+import { getDatabase, ref, onValue, push, child, update, equalTo, orderByChild, query, get } from "firebase/database";
 import 'firebase/compat/auth';
 import UserComponent from './components/UserComponent';
 import NewTaskDrawerComponent from './components/NewTaskDrawer';
@@ -83,7 +83,8 @@ function App() {
     name: null,
     guid: null,
     admin: null,
-    avatar: null
+    avatar: null,
+    email: null
   });
 
   const [usersResults, setUsersResults] = useState([]);
@@ -133,27 +134,14 @@ function App() {
     });
   }
 
-  const isAllreadyUser = async (uid: string) => {
-    const getUserByUid = ref(database, `users/${uid}`);
-
-    let userExist = false;
-    await onValue(getUserByUid, (snapshot) => {
-      userExist = snapshot.exists();
-      console.log('*', userExist)
-    })
-
-    // TODO: MAKE SOMEHOW TO CHECK IF USER ALLREADY EXIST
-    console.log('**', userExist)
-    return userExist;
-  }
-
-  function getUserByUid() {
-    const getUserByUid = ref(database, `users/${user.guid}`);
-    onValue(getUserByUid, (snapshot) => {
-      const data = snapshot.val();
-      setTaskResults(data);
+  const getUser = async (uid: string) => {
+    const dbRef = ref(getDatabase());
+    const resp = await get(child(dbRef, `users/${uid}`)).then((snapshot) => {
+      return snapshot.val()
+    }).catch((error: any) => {
+      console.error(error);
     });
-    return database;
+    return resp;
   }
 
   useEffect(() => {
@@ -162,7 +150,6 @@ function App() {
       const getEmployes = query(ref(db, 'users'), orderByChild('supervisorId'), equalTo(user?.guid));
       const getUserByUid = ref(database, `users/${user.guid}`);
 
-      // TODO: LEARN TO MAKE REQUEST SEPARATED
       const getTaskAssigned = query(ref(db, 'tasks'), orderByChild('personsAssigned'), equalTo(user?.guid));
       onValue(getTaskAssigned, (snapshot) => {
         const data = snapshot.val();
@@ -178,7 +165,7 @@ function App() {
       // Get users request
       onValue(getEmployes, (snapshot) => {
         const data = snapshot.val();
-        console.log(data)
+        // console.log(data)
         setUsersResults(data);
       });
 
@@ -198,13 +185,14 @@ function App() {
     const unregisterAuthObserver = firebase.auth().onAuthStateChanged(async (userDB) => {
       if (!!userDB) {
         setIsSignedIn(!!userDB);
-        setUser({ name: userDB.displayName, guid: userDB.uid, avatar: userDB.photoURL, admin: null });
-        if (await isAllreadyUser(userDB?.uid)) {
-          console.log("user allready exist")
-        } else {
+
+        // Create user if not exist in local db
+        const userExist = await getUser(userDB?.uid);
+        if (!(!!userExist)) {
           writeNewUser(userDB?.uid!, userDB?.displayName!, userDB?.email!, userDB?.photoURL!);
         }
-        writeNewUser(userDB?.uid!, userDB?.displayName!, userDB?.email!, userDB?.photoURL!);
+
+        setUser({ name: userDB.displayName, guid: userDB.uid, avatar: userDB.photoURL, admin: null, email: userDB.email });
       } else {
         setIsSignedIn(false)
       }
@@ -225,20 +213,17 @@ function App() {
   return (
     <div>
       <ThemeProvider theme={theme}>
-        <AuthProvider.Provider value={{ name: user?.name, guid: user?.guid, avatar: user?.avatar, admin: user?.admin }}>
+        <AuthProvider.Provider value={{ name: user?.name, guid: user?.guid, avatar: user?.avatar, admin: user?.admin, email: user?.email }}>
           <Router>
             <Navigation onNewTaskHandler={() => setIsDrawerOpen(true)} onSignOut={signOut} />
-
-            <TextField id="outlined-basic" label="Outlined" variant="outlined" />
-
             <Routes >
-              <Route path="/">
+              <Route path="/" element={user?.admin ? <Navigate to="/users" /> : <Navigate to="/mytask" />}>
               </Route>
               <Route path="/users" element={<UserComponent onResults={usersResults} />}>
               </Route>
-              <Route path="/tasks" element={<TaskComponents onDone={updateDoneTask} onResults={taskResults} />} >
+              <Route path="/tasks" element={user?.admin ? <TaskComponents onDone={updateDoneTask} onResults={taskResults} /> : <Navigate to="/" />}>
               </Route>
-              <Route path="/mytask" element={<TaskComponents onDone={updateDoneTask} onResults={taskAssignedResults} />} >
+              <Route path="/mytask" element={!user?.admin ? <TaskComponents onDone={updateDoneTask} onResults={taskAssignedResults} /> : <Navigate to="/" />} >
               </Route>
             </Routes >
           </Router>
