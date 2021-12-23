@@ -20,15 +20,13 @@ const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults }) => {
     const customDoneFormat = ((customDoneProps: any) => {
         const taskId = customDoneProps.row.id;
         const isDone = Boolean(customDoneProps.value);
-        const personsAssigned = Boolean(customDoneProps.value);
-
         return <Checkbox onClick={() => onDone(taskId, !isDone)} checked={isDone} />
     });
-    const customAssignedFormat = ((person: { id: string }) => person.id);
 
     let resultRow: any = []
     for (const property in onResults) {
         const row: any = onResults[property];
+        console.log(onResults[property]);
         resultRow.push({ ...row, id: property })
     }
     const columnsDefintition = [
@@ -40,8 +38,7 @@ const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults }) => {
     ];
 
     if (isAdmin) {
-        columnsDefintition.push({ field: 'personsAssigned', width: 350, headerName: 'Assigned', valueFormatter: customAssignedFormat },
-        )
+        columnsDefintition.push({ field: 'personsAssigned', width: 350, headerName: 'Assigned' })
     }
 
     return (

@@ -30,7 +30,6 @@ export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) 
     }, [taskTitle, taskDescription, selectedDate])
 
     const onDateChange = (date: MaterialUiPickersDate, value: string | null | undefined) => {
-        console.log(value);
         setDate(date);
         if (value) {
             setSelectedDateValue(value);
@@ -77,6 +76,7 @@ export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) 
             <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
                 <KeyboardDatePicker
                     autoOk={true}
+                    disablePast={true}
                     label="Deadline"
                     showTodayButton={true}
                     value={selectedDate}
