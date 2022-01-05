@@ -33,6 +33,11 @@ const theme = createTheme({
 });
 
 
+type Updates = {
+  [key: string]: object
+  // de creat type pentru taks si users si assignat aici in loc de obj
+}
+
 const Firebase = firebase.initializeApp(firebaseConfig);
 
 const uiConfig = {
@@ -68,7 +73,7 @@ function writeNewUser(uid: string, name: string, email: string, photoURL: string
   const newUserKey = push(child(ref(database), 'users')).key;
 
   // Write the new user's data simultaneously in the users list and the user's user list.
-  const updates: any = {};
+  const updates: Updates = {};
   updates['/users/' + uid] = userData;
 
   return update(ref(database), updates).then(() => {
@@ -117,11 +122,10 @@ function App() {
     // Get a key for a new task.
     const newTaskId = push(child(ref(database), 'tasks')).key;
 
-    const updates: any = {};
+    const updates: Updates = {};
     updates[`/tasks/' + ${newTaskId}`] = userData;
 
     return update(ref(database), updates).then(() => {
-      console.log("New task has been created")
     }).catch(err => {
       console.log(err)
     })
@@ -138,7 +142,7 @@ function App() {
     const dbRef = ref(getDatabase());
     const resp = await get(child(dbRef, `users/${uid}`)).then((snapshot) => {
       return snapshot.val()
-    }).catch((error: any) => {
+    }).catch((error) => {
       console.error(error);
     });
     return resp;
@@ -149,7 +153,9 @@ function App() {
       const getTasks = ref(database, `tasks/`);
       const getEmployes = query(ref(db, 'users'), orderByChild('supervisorId'), equalTo(user?.guid));
       const getUserByUid = ref(database, `users/${user.guid}`);
+      const test = query(ref(db, 'users/'), orderByChild('supervisorId'), equalTo(user?.guid),);
 
+      // de facut functii externe pentru requesturi cu params
       const getTaskAssigned = query(ref(db, 'tasks'), orderByChild('personsAssigned'), equalTo(user?.guid));
       onValue(getTaskAssigned, (snapshot) => {
         const data = snapshot.val();
@@ -157,15 +163,21 @@ function App() {
       });
 
       // Get task request
-      onValue(getTasks, (snapshot) => {
+      onValue(getTasks, async (snapshot) => {
         const data = snapshot.val();
+        const tasks = await Promise.all(data.map((item: any) => {
+          // de gasit un mod de a face request si a astepta pe toate 
+          // const user = ref(database, `users/${user.guid}`);
+
+          return { ...item, user }
+        }))
+
         setTaskResults(data);
       });
 
       // Get users request
       onValue(getEmployes, (snapshot) => {
         const data = snapshot.val();
-        // console.log(data)
         setUsersResults(data);
       });
 

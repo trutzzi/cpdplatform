@@ -135,6 +135,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
                         <Box sx={{ flexGrow: 0 }}>
                             <Tooltip title="Open settings">
                                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                                    <span style={{ fontSize: '16px', marginRight: '10px' }}>{context.name ?? "Guest"}</span>
                                     <Avatar alt={context.name ?? "Guest"} src={context?.avatar ?? '/'} />
                                 </IconButton>
                             </Tooltip>

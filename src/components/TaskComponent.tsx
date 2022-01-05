@@ -15,7 +15,7 @@ type TaskComponentsProps = {
 const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults }) => {
     const context = useContext(AuthProvider)
     const isAdmin = context?.admin;
-    const formatDate = (({ value }: any) => Moment(value).format('DD MMMM YYYY'));
+    const formatDate = (({ value }: { value: any }) => Moment(value).format('DD MMMM YYYY'));
 
     const customDoneFormat = ((customDoneProps: any) => {
         const taskId = customDoneProps.row.id;

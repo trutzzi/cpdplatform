@@ -11,6 +11,10 @@ import moment from "moment";
 import InputLabel from '@mui/material/InputLabel';
 import Autocomplete from '@mui/material/Autocomplete';
 import { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
+import { AutocompleteValue } from '@mui/material';
+
+type AssignedValue = AutocompleteValue<{ assigned: React.SetStateAction<string> } | unknown, undefined, undefined, undefined>;
+
 
 export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) {
     const [selectedDate, setDate] = useState<MaterialUiPickersDate | null>(null);
@@ -92,8 +96,8 @@ export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) 
                 id="assigned"
                 options={assignedOptions}
                 sx={{ width: 300 }}
-                onChange={(event, newValue: any) => {
-                    setPersonsAssigned(newValue.assigned);
+                onChange={(event, newValue: AssignedValue) => {
+                    newValue?.assigned && setPersonsAssigned(newValue.assigned);
                 }}
                 renderInput={(params) => {
                     return <TextField {...params} />

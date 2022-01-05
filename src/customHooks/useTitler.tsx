@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export default function useTitler(titleDocument: any) {
+export default function useTitler(titleDocument: string) {
     function setTitle(title: string) {
         document.title = title;
     };
