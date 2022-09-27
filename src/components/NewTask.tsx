@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import TextField from '@mui/material/TextField';
-import {
-    MuiPickersUtilsProvider,
-    KeyboardDatePicker
-} from "@material-ui/pickers";
+// import {
+//     MuiPickersUtilsProvider,
+//     KeyboardDatePicker
+// } from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
 import moment from "moment";
-import { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
+// import { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 import { AutocompleteValue, Grid, Typography, InputLabel, Button, Autocomplete } from '@mui/material';
 
-type AssignedValue = AutocompleteValue<{ assigned: React.SetStateAction<string> } | unknown, undefined, undefined, undefined>;
+type OptionsAssign = { label: string, value: string };
 
 export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) {
-    const [selectedDate, setDate] = useState<MaterialUiPickersDate | null>(null);
+    const [selectedDate, setDate] = useState(null);
     const [selectedDateValue, setSelectedDateValue] = useState(moment().format("DD MMMM YYYY"));
     const [taskTitle, setTaskTitle] = useState('');
     const [taskDescription, setTaskDescription] = useState('');
     const [isValidInput, setIsValidInput] = useState(true);
     const [personAssigned, setPersonsAssigned] = useState<string>('');
-    const [assignedOptions, setAssignedOptions] = useState<readonly unknown[]>([])
+    const [assignedOptions, setAssignedOptions] = useState<OptionsAssign[]>([])
 
     useEffect(() => {
         if (taskTitle.length && taskDescription.length && selectedDateValue?.length) {
@@ -27,13 +27,6 @@ export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) 
             setIsValidInput(true);
         }
     }, [taskTitle, taskDescription, selectedDate])
-
-    const onDateChange = (date: MaterialUiPickersDate, value: string | null | undefined) => {
-        setDate(date);
-        if (value) {
-            setSelectedDateValue(value);
-        }
-    };
 
     const dateFormatter = (str: string) => {
         return str;
@@ -44,10 +37,10 @@ export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) 
     }
 
     useEffect(() => {
-        const newUsers = [];
+        const newUsers: OptionsAssign[] = [];
         for (const property in onUsersSearch) {
             const user = onUsersSearch[property];
-            newUsers.push({ label: user?.name, assigned: user?.uid });
+            newUsers.push({ label: user?.name, value: user?.uid });
         }
         setAssignedOptions(newUsers);
     }, [onUsersSearch]);
@@ -71,19 +64,7 @@ export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) 
                 />
             </Grid>
             <Grid item>
-                <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
-                    <KeyboardDatePicker
-                        autoOk={true}
-                        disablePast={true}
-                        label="Deadline"
-                        showTodayButton={true}
-                        value={selectedDate}
-                        format="DD MMMM YYYY"
-                        inputValue={selectedDateValue}
-                        onChange={onDateChange}
-                        rifmFormatter={dateFormatter}
-                    />
-                </MuiPickersUtilsProvider>
+                <TextField label='Deadline time' />
             </Grid>
             <Grid item>
                 <InputLabel id="usersAssignedLabel">Assign taks</InputLabel>
@@ -91,10 +72,9 @@ export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) 
                     disablePortal
                     id="assigned"
                     options={assignedOptions}
-                    onChange={(event) => {
-                        // TODO: Change event 
-                        // setPersonsAssigned(assigned);
-                        console.log(event);
+                    onChange={(event, newValue) => {
+                        console.log(newValue)
+                        setPersonsAssigned(newValue?.value || '')
                     }}
                     renderInput={(params) => {
                         return <TextField {...params} />

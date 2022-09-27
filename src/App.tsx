@@ -18,8 +18,7 @@ import { firebaseConfig } from './FirebaseConfig';
 import TaskComponents from './components/TaskComponent';
 import Navigation from './components/Navigation';
 import { AuthProvider, UserContextType } from './contexts/UserContext';
-import { CssBaseline } from '@mui/material';
-import { Container } from '@mui/system';
+import { CssBaseline, Container } from '@mui/material';
 
 const theme = createTheme({
 
@@ -107,7 +106,7 @@ function App() {
 
     // A task entry.
     const myDate = new Date();
-    const userData = {
+    const newTask = {
       uid: user?.guid,
       taskTitle,
       taskDescription,
@@ -122,7 +121,7 @@ function App() {
     const newTaskId = push(child(ref(database), 'tasks')).key;
 
     const updates: Updates = {};
-    updates[`/tasks/' + ${newTaskId}`] = userData;
+    updates[`/tasks/' + ${newTaskId}`] = newTask;
 
     return update(ref(database), updates).then(() => {
     }).catch(err => {
@@ -148,6 +147,9 @@ function App() {
   }
 
   useEffect(() => {
+    /**
+     * If user exist
+     */
     if (user?.guid?.length) {
       const getTasks = ref(database, `tasks/`);
       const getEmployes = query(ref(db, 'users'), orderByChild('supervisorId'), equalTo(user?.guid));
@@ -165,8 +167,6 @@ function App() {
       onValue(getTasks, async (snapshot) => {
         const data = snapshot.val();
         // const tasks = await Promise.all(data.map((item: any) => {
-        //   // de gasit un mod de a face request si a astepta pe toate 
-        //   // const user = ref(database, `users/${user.guid}`);
 
         //   return { ...item, user }
         // }))
@@ -225,7 +225,7 @@ function App() {
     <div>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <AuthProvider.Provider value={{ name: user?.name, guid: user?.guid, avatar: user?.avatar, admin: user?.admin, email: user?.email }}>
+        <AuthProvider.Provider value={user}>
           <Router>
             <Navigation onNewTaskHandler={() => setIsDrawerOpen(true)} onSignOut={signOut} />
             <Container>

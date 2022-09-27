@@ -16,7 +16,8 @@ import { AuthProvider } from '../contexts/UserContext';
 import { Link } from "react-router-dom";
 import Mybreadcrumbs from './Mybreadcrumbs';
 import { getPages } from '../routes/navigation';
-import useTitler from '../customHooks/useTitler';
+import useTitler, { titleApp } from '../customHooks/useTitler';
+import { maineColorOverwrite } from '../themes/theme';
 
 
 type NavigationProps = {
@@ -28,6 +29,8 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
     const [currentPage, setCurrentPage] = useState('home');
     const [pages, setPages] = useState<{ text: string, link: string }[]>([])
     const context = useContext(AuthProvider)
+
+    const localStyle = { color: maineColorOverwrite }
 
     useEffect(() => {
         setPages(getPages(context?.admin));
@@ -69,7 +72,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
                             component="div"
                             sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
                         >
-                            CPD Platform
+                            {titleApp}
                         </Typography>
 
                         <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -119,17 +122,17 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
                         <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                             {pages.map(({ text, link }) => (
                                 <Button
+                                    style={{ ...localStyle }}
                                     key={text}
                                     to={link} component={Link}
                                     onClick={() => handleCloseNavMenu(text)}
-                                    sx={{ my: 2, color: 'white', display: 'block' }}
                                 >
                                     {text}
                                 </Button>
                             ))}
                             {context?.admin && <Button
+                                style={{ ...localStyle }}
                                 onClick={onNewTaskHandler}
-                                sx={{ my: 2, color: 'white', display: 'block' }}
                             >
                                 New Task
                             </Button>}
