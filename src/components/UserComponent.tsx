@@ -1,4 +1,4 @@
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridColumns } from '@mui/x-data-grid';
 import { FC } from 'react';
 import CircleIcon from '@mui/icons-material/Circle';
 
@@ -18,7 +18,7 @@ const UserComponent: FC<UserComponentsProps> = ({ onResults }) => {
         resultRow.push({ ...row, id: uniqureId })
     }
     const customAvatarColumn = ({ value }: { value: string }) => (
-        value.length ? <img width="50px" src={value} /> : ''
+        <img width="50px" alt="avatar" src={value} />
     )
 
     // const customAdminColumn = ({ value }: { value: string }) => {
@@ -26,8 +26,8 @@ const UserComponent: FC<UserComponentsProps> = ({ onResults }) => {
     //     return isAdmin ? <span style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: "row" }}><CircleIcon fontSize="small" color="success" /> Yes</span> : <span><CircleIcon fontSize="small" color="disabled" />No</span>;
     // }
 
-    const colDefinition = [
-        { field: 'photoURL', width: 70, headerName: 'Avatar', renderCell: customAvatarColumn },
+    const colDefinition: GridColumns = [
+        { field: 'photoURL', width: 70, headerName: 'Avatar', renderCell: () => customAvatarColumn },
         { field: 'name', width: 100, headerName: 'Name' },
         { field: 'email', width: 160, headerName: 'E-mail' },
         { field: 'timestamp', width: 150, headerName: 'Created', valueFormatter: formatDate },

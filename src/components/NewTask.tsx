@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import {
     MuiPickersUtilsProvider,
     KeyboardDatePicker
 } from "@material-ui/pickers";
-import Button from '@mui/material/Button'
 import MomentUtils from "@date-io/moment";
 import moment from "moment";
-import InputLabel from '@mui/material/InputLabel';
-import Autocomplete from '@mui/material/Autocomplete';
 import { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
-import { AutocompleteValue } from '@mui/material';
+import { AutocompleteValue, Grid, Typography, InputLabel, Button, Autocomplete } from '@mui/material';
 
 type AssignedValue = AutocompleteValue<{ assigned: React.SetStateAction<string> } | unknown, undefined, undefined, undefined>;
-
 
 export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) {
     const [selectedDate, setDate] = useState<MaterialUiPickersDate | null>(null);
@@ -59,51 +54,56 @@ export default function ValidationTextFields({ onNewTask, onUsersSearch }: any) 
 
 
     return (
-        <Box
-            component="form"
-            display="flex"
-            flexDirection="column"
-
-            noValidate
-            autoComplete="off"
-        >
-            <TextField
-                id="taskTitle"
-                label="Task title"
-                onChange={e => setTaskTitle(e.target.value)}
-            />
-            <TextField
-                id="taskDescription"
-                label="Task description"
-                onChange={e => setTaskDescription(e.target.value)}
-            />
-            <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
-                <KeyboardDatePicker
-                    autoOk={true}
-                    disablePast={true}
-                    label="Deadline"
-                    showTodayButton={true}
-                    value={selectedDate}
-                    format="DD MMMM YYYY"
-                    inputValue={selectedDateValue}
-                    onChange={onDateChange}
-                    rifmFormatter={dateFormatter}
+        <Grid container flexDirection="column" spacing={1} padding={2}>
+            <Typography>Create new task</Typography>
+            <Grid item>
+                <TextField
+                    id="taskTitle"
+                    label="Task title"
+                    onChange={e => setTaskTitle(e.target.value)}
                 />
-            </MuiPickersUtilsProvider>
-            <InputLabel id="usersAssignedLabel">Assign taks</InputLabel>
-            <Autocomplete
-                disablePortal
-                id="assigned"
-                options={assignedOptions}
-                sx={{ width: 300 }}
-                onChange={(event, newValue: AssignedValue) => {
-                    newValue?.assigned && setPersonsAssigned(newValue.assigned);
-                }}
-                renderInput={(params) => {
-                    return <TextField {...params} />
-                }}
-            />
-            <Button disabled={isValidInput} onClick={handlenewTask}>Create Task</Button>
-        </Box >
+            </Grid>
+            <Grid item>
+                <TextField
+                    id="taskDescription"
+                    label="Task description"
+                    onChange={e => setTaskDescription(e.target.value)}
+                />
+            </Grid>
+            <Grid item>
+                <MuiPickersUtilsProvider libInstance={moment} utils={MomentUtils}>
+                    <KeyboardDatePicker
+                        autoOk={true}
+                        disablePast={true}
+                        label="Deadline"
+                        showTodayButton={true}
+                        value={selectedDate}
+                        format="DD MMMM YYYY"
+                        inputValue={selectedDateValue}
+                        onChange={onDateChange}
+                        rifmFormatter={dateFormatter}
+                    />
+                </MuiPickersUtilsProvider>
+            </Grid>
+            <Grid item>
+                <InputLabel id="usersAssignedLabel">Assign taks</InputLabel>
+                <Autocomplete
+                    disablePortal
+                    id="assigned"
+                    options={assignedOptions}
+                    onChange={(event) => {
+                        // TODO: Change event 
+                        // setPersonsAssigned(assigned);
+                        console.log(event);
+                    }}
+                    renderInput={(params) => {
+                        return <TextField {...params} />
+                    }}
+                />
+            </Grid>
+            <Grid item>
+                <Button disabled={isValidInput} onClick={handlenewTask}>Create Task</Button>
+            </Grid>
+        </Grid>
     );
 }

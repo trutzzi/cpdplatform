@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+
+const titleApp = 'CPD Platform'
 
 export default function useTitler(titleDocument: string) {
     function setTitle(title: string) {
-        document.title = title;
+        document.title = titleApp + ' | ' + title;
     };
 
     useEffect(() => {

@@ -1,5 +1,4 @@
 
-import { Typography } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
 import { DataGrid } from '@mui/x-data-grid';
 import Moment from 'moment';
@@ -43,7 +42,6 @@ const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults }) => {
 
     return (
         <div style={{ height: 600 }}>
-            <Typography variant='h4'>{context.name}'s tasks</Typography>
             <DataGrid
                 columns={columnsDefintition}
                 rows={resultRow}

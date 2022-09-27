@@ -16,9 +16,10 @@ import UserComponent from './components/UserComponent';
 import NewTaskDrawerComponent from './components/NewTaskDrawer';
 import { firebaseConfig } from './FirebaseConfig';
 import TaskComponents from './components/TaskComponent';
-import useTitler from './customHooks/useTitler';
 import Navigation from './components/Navigation';
 import { AuthProvider, UserContextType } from './contexts/UserContext';
+import { CssBaseline } from '@mui/material';
+import { Container } from '@mui/system';
 
 const theme = createTheme({
 
@@ -98,8 +99,6 @@ function App() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const db = getDatabase();
 
-  const [docTitle, setDocTitle] = useTitler('CPD Platform');
-
   const toggleDrawer = (newOpen: boolean) => () => {
     setIsDrawerOpen(newOpen);
   };
@@ -165,12 +164,12 @@ function App() {
       // Get task request
       onValue(getTasks, async (snapshot) => {
         const data = snapshot.val();
-        const tasks = await Promise.all(data.map((item: any) => {
-          // de gasit un mod de a face request si a astepta pe toate 
-          // const user = ref(database, `users/${user.guid}`);
+        // const tasks = await Promise.all(data.map((item: any) => {
+        //   // de gasit un mod de a face request si a astepta pe toate 
+        //   // const user = ref(database, `users/${user.guid}`);
 
-          return { ...item, user }
-        }))
+        //   return { ...item, user }
+        // }))
 
         setTaskResults(data);
       });
@@ -225,19 +224,22 @@ function App() {
   return (
     <div>
       <ThemeProvider theme={theme}>
+        <CssBaseline />
         <AuthProvider.Provider value={{ name: user?.name, guid: user?.guid, avatar: user?.avatar, admin: user?.admin, email: user?.email }}>
           <Router>
             <Navigation onNewTaskHandler={() => setIsDrawerOpen(true)} onSignOut={signOut} />
-            <Routes >
-              <Route path="/" element={user?.admin ? <Navigate to="/users" /> : <Navigate to="/mytask" />}>
-              </Route>
-              <Route path="/users" element={<UserComponent onResults={usersResults} />}>
-              </Route>
-              <Route path="/tasks" element={user?.admin ? <TaskComponents onDone={updateDoneTask} onResults={taskResults} /> : <Navigate to="/" />}>
-              </Route>
-              <Route path="/mytask" element={!user?.admin ? <TaskComponents onDone={updateDoneTask} onResults={taskAssignedResults} /> : <Navigate to="/" />} >
-              </Route>
-            </Routes >
+            <Container>
+              <Routes >
+                <Route path="/" element={user?.admin ? <Navigate to="/users" /> : <Navigate to="/mytask" />}>
+                </Route>
+                <Route path="/users" element={<UserComponent onResults={usersResults} />}>
+                </Route>
+                <Route path="/tasks" element={user?.admin ? <TaskComponents onDone={updateDoneTask} onResults={taskResults} /> : <Navigate to="/" />}>
+                </Route>
+                <Route path="/mytask" element={!user?.admin ? <TaskComponents onDone={updateDoneTask} onResults={taskAssignedResults} /> : <Navigate to="/" />} >
+                </Route>
+              </Routes >
+            </Container>
           </Router>
           {user?.admin && <NewTaskDrawerComponent onUsersSearch={usersResults} onToggleDrawer={toggleDrawer} onOpen={isDrawerOpen} onWriteNewTask={writeNewTask} />}
         </AuthProvider.Provider>

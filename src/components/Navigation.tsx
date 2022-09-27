@@ -16,6 +16,7 @@ import { AuthProvider } from '../contexts/UserContext';
 import { Link } from "react-router-dom";
 import Mybreadcrumbs from './Mybreadcrumbs';
 import { getPages } from '../routes/navigation';
+import useTitler from '../customHooks/useTitler';
 
 
 type NavigationProps = {
@@ -31,6 +32,8 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
     useEffect(() => {
         setPages(getPages(context?.admin));
     }, [context])
+
+    useTitler(currentPage);
 
     const settings = [{ text: 'Logout', action: onSignOut }];
 
@@ -58,7 +61,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSignOut, onNewTaskHandler }) 
     return (
         <>
             <AppBar position="static">
-                <Container maxWidth="xl">
+                <Container >
                     <Toolbar disableGutters>
                         <Typography
                             variant="h6"
