@@ -8,7 +8,7 @@ import { AuthProvider } from '../contexts/UserContext';
 
 type TaskComponentsProps = {
     onDone: Function,
-    onResults: never[]
+    onResults: any[]
 };
 
 const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults }) => {
@@ -37,7 +37,10 @@ const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults }) => {
     ];
 
     if (isAdmin) {
-        columnsDefintition.push({ field: 'personsAssigned', width: 350, headerName: 'Assigned' })
+        columnsDefintition.push(
+            { field: 'user', width: 150, headerName: 'Assigned' },
+            { field: 'email', width: 200, headerName: 'E-mail' }
+        );
     }
 
     return (

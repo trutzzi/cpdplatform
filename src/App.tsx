@@ -10,7 +10,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { blue, green } from '@mui/material/colors';
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import firebase from 'firebase/compat/app';
-import { getDatabase, ref, onValue, push, child, update, equalTo, orderByChild, query, get } from "firebase/database";
+import { getDatabase, ref, onValue, push, child, update, equalTo, orderByChild, query, get, DatabaseReference } from "firebase/database";
 import 'firebase/compat/auth';
 import UserComponent from './components/UserComponent';
 import NewTaskDrawerComponent from './components/NewTaskDrawer';
@@ -93,7 +93,7 @@ function App() {
   });
 
   const [usersResults, setUsersResults] = useState([]);
-  const [taskResults, setTaskResults] = useState([]);
+  const [taskResults, setTaskResults] = useState<any[]>([]);
   const [taskAssignedResults, setTaskAssigendRestults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const db = getDatabase();
@@ -163,15 +163,17 @@ function App() {
         setTaskAssigendRestults(data);
       });
 
-      // Get task request
+      // Get task request & user for each of them
       onValue(getTasks, async (snapshot) => {
         const data = snapshot.val();
-        // const tasks = await Promise.all(data.map((item: any) => {
-
-        //   return { ...item, user }
-        // }))
-
-        setTaskResults(data);
+        const tasks: any[] = [];
+        for (let req in data) {
+          let users = (ref(database, `users/${data[req].personsAssigned}`));
+          await onValue(users, (snapshot) => {
+            tasks.push({ ...data[req], user: snapshot.val().name, email: snapshot.val().email })
+          })
+        }
+        setTaskResults(tasks);
       });
 
       // Get users request
