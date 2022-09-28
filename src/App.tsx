@@ -93,6 +93,10 @@ function App() {
   });
 
   const [usersResults, setUsersResults] = useState([]);
+  const [isUserLoading, setIsUserLoading] = useState(true);
+  const [isTasksLoading, setIsTasksLoading] = useState(true);
+  const [isTaskLoading, setIsTaskLoading] = useState(true);
+
   const [taskResults, setTaskResults] = useState<any[]>([]);
   const [taskAssignedResults, setTaskAssigendRestults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -143,6 +147,7 @@ function App() {
     }).catch((error) => {
       console.error(error);
     });
+    setIsUserLoading(false)
     return resp;
   }
 
@@ -160,6 +165,7 @@ function App() {
       const getTaskAssigned = query(ref(db, 'tasks'), orderByChild('personsAssigned'), equalTo(user?.guid));
       onValue(getTaskAssigned, (snapshot) => {
         const data = snapshot.val();
+        setIsTasksLoading(false)
         setTaskAssigendRestults(data);
       });
 
@@ -173,6 +179,7 @@ function App() {
             tasks.push({ ...data[req], user: snapshot.val().name, email: snapshot.val().email })
           })
         }
+        setIsTaskLoading(false);
         setTaskResults(tasks);
       });
 
@@ -236,9 +243,9 @@ function App() {
                 </Route>
                 <Route path="/users" element={<UserComponent onResults={usersResults} />}>
                 </Route>
-                <Route path="/tasks" element={user?.admin ? <TaskComponents onDone={updateDoneTask} onResults={taskResults} /> : <Navigate to="/" />}>
+                <Route path="/tasks" element={user?.admin ? <TaskComponents isLoading={isTaskLoading} onDone={updateDoneTask} onResults={taskResults} /> : <Navigate to="/" />}>
                 </Route>
-                <Route path="/mytask" element={!user?.admin ? <TaskComponents onDone={updateDoneTask} onResults={taskAssignedResults} /> : <Navigate to="/" />} >
+                <Route path="/mytask" element={!user?.admin ? <TaskComponents isLoading={isTasksLoading} onDone={updateDoneTask} onResults={taskAssignedResults} /> : <Navigate to="/" />} >
                 </Route>
               </Routes >
             </Container>

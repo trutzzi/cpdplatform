@@ -1,4 +1,5 @@
 
+import { CircularProgress } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
 import { DataGrid } from '@mui/x-data-grid';
 import Moment from 'moment';
@@ -8,10 +9,11 @@ import { AuthProvider } from '../contexts/UserContext';
 
 type TaskComponentsProps = {
     onDone: Function,
+    isLoading: Boolean,
     onResults: any[]
 };
 
-const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults }) => {
+const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults, isLoading }) => {
     const context = useContext(AuthProvider)
     const isAdmin = context?.admin;
     const formatDate = (({ value }: { value: any }) => Moment(value).format('DD MMMM YYYY'));
@@ -25,7 +27,6 @@ const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults }) => {
     let resultRow: any = []
     for (const property in onResults) {
         const row: any = onResults[property];
-        console.log(onResults[property]);
         resultRow.push({ ...row, id: property })
     }
     const columnsDefintition = [
@@ -45,10 +46,12 @@ const TaskComponents: FC<TaskComponentsProps> = ({ onDone, onResults }) => {
 
     return (
         <div style={{ height: 600 }}>
-            <DataGrid
-                columns={columnsDefintition}
-                rows={resultRow}
-            />
+            {isLoading ? < CircularProgress /> :
+                <DataGrid
+                    columns={columnsDefintition}
+                    rows={resultRow}
+                />
+            }
         </div>
     )
 }
